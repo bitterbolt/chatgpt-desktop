@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>    
+    <ApplicationIcon>Resources\ChatGPT.ico</ApplicationIcon>
+	<AssemblyTitle> Работа с основными чатами нейросетей. </AssemblyTitle>
+    <Company>XoXoТач</Company>
+    <Authors>XoXoТач</Authors>
+    <AssemblyCompany>XoXoТач</AssemblyCompany>
+	<Copyright>Copyright © 2026 XoXoТач</Copyright>
+	<AssemblyVersion>1.0.0.0</AssemblyVersion>
+	<FileVersion>1.0.0.0</FileVersion>
+	<Version>1.0.0</Version>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Player.jpg" />
+    <EmbeddedResource Include="Resources\ChatGPT.ico" />
+    <EmbeddedResource Include="Resources\Claude.ico" />
+    <EmbeddedResource Include="Resources\Gemini.ico" />
+    <EmbeddedResource Include="Resources\DeepSeek.ico" />
+    <EmbeddedResource Include="Resources\Grok.ico" />
+    <EmbeddedResource Include="Resources\Copilot.ico" />
+    <EmbeddedResource Include="Resources\Menu.ico" />
+    <EmbeddedResource Include="Resources\Fullscreen.ico" />
+    <EmbeddedResource Include="Resources\Browser.ico" />
+    <EmbeddedResource Include="Resources\Adressbar.ico" />
+    <EmbeddedResource Include="Resources\Close.ico" />
+    <EmbeddedResource Include="Resources\on.ico" />
+    <EmbeddedResource Include="Resources\off.ico" />
+    <EmbeddedResource Include="Resources\no.ico" />
+    <EmbeddedResource Include="Resources\Scripts\*.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="WebView2Loader.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>

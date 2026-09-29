@@ -1,0 +1,22 @@
+# Build output
+bin/
+obj/
+Release/
+[Dd]ebug/
+publish/
+
+# Executables (WebView2Loader.dll is required by the .csproj, keep it)
+*.exe
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+# Backups
+*.bak
+
+# OS
+Thumbs.db
+.DS_Store
