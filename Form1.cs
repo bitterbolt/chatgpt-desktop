@@ -206,7 +206,7 @@ namespace ChatGPT
             btnOverlayClose = CreateOverlayButton(
                 "btnOverlayClose",
                 48,
-                "ChatGPT.Resources.close.ico",
+                "ChatGPT.Resources.Close.ico",
                 "Назад к просмотру",
 				(s, e) => TryReturnFromOverlay(),
                 true
@@ -400,15 +400,15 @@ namespace ChatGPT
                 Width = this.ClientSize.Width
             };
             
-            btnOverlayToggle = MakeToolbarButton("ChatGPT.Resources.menu.ico", 24, DockStyle.Left, (s, e) => ToggleOverlayVisibility());
-            btnFullscreenToggle = MakeToolbarButton("ChatGPT.Resources.full-screen.ico", 24, DockStyle.Right, (s, e) => ToggleFullScreen());
-            btnBrowserToggle = MakeToolbarButton("ChatGPT.Resources.browser.ico", 24, DockStyle.Right, (s, e) =>
+            btnOverlayToggle = MakeToolbarButton("ChatGPT.Resources.Menu.ico", 24, DockStyle.Left, (s, e) => ToggleOverlayVisibility());
+            btnFullscreenToggle = MakeToolbarButton("ChatGPT.Resources.Fullscreen.ico", 24, DockStyle.Right, (s, e) => ToggleFullScreen());
+            btnBrowserToggle = MakeToolbarButton("ChatGPT.Resources.Browser.ico", 24, DockStyle.Right, (s, e) =>
             {
                 overlayForm?.Hide();
                 try { webView.Source = new Uri("https://www.google.com/?hl=ru"); } catch { }
                 webView.Focus();
             });
-            btnAddressBarToggle = MakeToolbarButton("ChatGPT.Resources.adressbar.ico", 24, DockStyle.Right, (s, e) =>
+            btnAddressBarToggle = MakeToolbarButton("ChatGPT.Resources.Adressbar.ico", 24, DockStyle.Right, (s, e) =>
             {
                 addressPanel.Visible = !addressPanel.Visible;
             });
