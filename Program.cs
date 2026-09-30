@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.Web.WebView2.Core;
 using System.IO;
@@ -49,8 +49,10 @@ namespace ChatGPT
 
             Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", userDataFolder);
 
-
-            InitializeWebView2();
+            if (!CheckWebView2Runtime())
+            {
+                return;
+            }
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -102,15 +104,32 @@ namespace ChatGPT
             }
         }
 
-        private static void InitializeWebView2()
+        private static bool CheckWebView2Runtime()
         {
             try
             {
-                var webViewEnvironment = CoreWebView2Environment.CreateAsync().Result;
+                string version = CoreWebView2Environment.GetAvailableBrowserVersionString();
+                if (string.IsNullOrWhiteSpace(version))
+                {
+                    MessageBox.Show(
+                        "Не найден Microsoft Edge WebView2 Runtime.\nПожалуйста, установите его для работы приложения.",
+                        "Ошибка",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                    return false;
+                }
+                return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при инициализации WebView2: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    $"Не удалось инициализировать Microsoft Edge WebView2: {ex.Message}\nУбедитесь, что установлен WebView2 Runtime.",
+                    "Ошибка",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return false;
             }
         }
 
