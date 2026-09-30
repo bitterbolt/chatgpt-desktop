@@ -224,7 +224,7 @@ namespace ChatGPT
         {
             btnToggleDns = CreateOverlayButton(
                 "btnToggleDns", 
-                48,
+                32,
                 Program.IsAdmin ? (isDnsEnabled ? "ChatGPT.Resources.on.ico" : "ChatGPT.Resources.off.ico") : "ChatGPT.Resources.no.ico",
                 Program.IsAdmin ? (isDnsEnabled ? "Отключить обход блокировок" : "Включить обход блокировок") : "Требуются права администратора",
                 (s, e) => 
@@ -235,7 +235,7 @@ namespace ChatGPT
                     string resource = isDnsEnabled ? "ChatGPT.Resources.on.ico" : "ChatGPT.Resources.off.ico";
                     if (btnToggleDns != null)
 					{
-					    btnToggleDns.Image = IconService.Instance.LoadIcon(resource, 48, crop: false);
+					    btnToggleDns.Image = IconService.Instance.LoadIcon(resource, 32, crop: false, padding: 2);
                         dnsToolTip.SetToolTip(btnToggleDns, $"{stateText} обход блокировок");
 					}
                     overlayForm?.Focus();
@@ -246,7 +246,7 @@ namespace ChatGPT
 
             btnOverlayClose = CreateOverlayButton(
                 "btnOverlayClose",
-                48,
+                32,
                 "ChatGPT.Resources.Close.ico",
                 "Назад к просмотру",
 				(s, e) => TryReturnFromOverlay(),
@@ -256,7 +256,7 @@ namespace ChatGPT
 
             btnOverlaySettings = CreateOverlayButton(
                 "btnOverlaySettings",
-                48,
+                32,
                 "ChatGPT.Resources.Settings.ico",
                 "Настройки",
                 (s, e) => OpenSettings(),
@@ -285,7 +285,7 @@ namespace ChatGPT
                 TabStop = false,
                 BackColor = Color.Transparent,
                 ImageAlign = ContentAlignment.MiddleCenter,
-                Image = IconService.Instance.LoadIcon(iconResource, size, crop),
+                Image = IconService.Instance.LoadIcon(iconResource, size, crop: crop, padding: 2),
                 Enabled = enabled
             };
             btn.FlatAppearance.BorderSize = 0;
@@ -496,7 +496,7 @@ namespace ChatGPT
                     string resource = isDnsEnabled ? "ChatGPT.Resources.on.ico" : "ChatGPT.Resources.off.ico";
                     if (btnToggleDns != null)
                     {
-                        btnToggleDns.Image = IconService.Instance.LoadIcon(resource, 48, crop: false);
+                        btnToggleDns.Image = IconService.Instance.LoadIcon(resource, 32, crop: false, padding: 2);
                         dnsToolTip.SetToolTip(btnToggleDns,
                             (isDnsEnabled ? "Отключить" : "Включить") + " обход блокировок");
                     }

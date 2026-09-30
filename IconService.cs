@@ -17,9 +17,9 @@ namespace ChatGPT
         private readonly object _lock = new();
         private readonly Dictionary<string, Bitmap> _cache = new(StringComparer.OrdinalIgnoreCase);
 
-        public Bitmap LoadIcon(string resourceName, int targetSize, bool crop = false, int feather = 10)
+        public Bitmap LoadIcon(string resourceName, int targetSize, bool crop = false, int feather = 10, int padding = 0)
         {
-            string key = $"{resourceName}_{targetSize}_{crop}_{feather}";
+            string key = $"{resourceName}_{targetSize}_{crop}_{feather}_{padding}";
             lock (_lock)
             {
                 if (_cache.TryGetValue(key, out var bmp) && bmp != null)
@@ -41,7 +41,7 @@ namespace ChatGPT
                 using Bitmap src = icon.ToBitmap();
                 Bitmap result = crop
                     ? CropToCircleCached(src, feather, targetSize)
-                    : ScaleBitmap(src, targetSize);
+                    : ScaleBitmap(src, targetSize, padding);
 
                 lock (_lock)
                 {
@@ -79,19 +79,19 @@ namespace ChatGPT
             jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.Adressbar.ico", 24, false, 10)));
             jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.Settings.ico", 24, false, 10)));
 
-            // Оверлейные кнопки (48x48, без обрезки для ровных гладких краев)
-            jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.on.ico", 48, false, 10)));
-            jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.off.ico", 48, false, 10)));
-            jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.no.ico", 48, false, 10)));
-            jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.Close.ico", 48, false, 10)));
-            jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.Settings.ico", 48, false, 10)));
+            // Оверлейные кнопки (32x32, без обрезки для ровных гладких краев, с отступом 2px)
+            jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.on.ico", 32, false, 10, 2)));
+            jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.off.ico", 32, false, 10, 2)));
+            jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.no.ico", 32, false, 10, 2)));
+            jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.Close.ico", 32, false, 10, 2)));
+            jobs.Add(Task.Run(() => Preload("ChatGPT.Resources.Settings.ico", 32, false, 10, 2)));
 
             return Task.WhenAll(jobs);
         }
 
-        private void Preload(string resourceName, int size, bool crop, int feather)
+        private void Preload(string resourceName, int size, bool crop, int feather, int padding = 0)
         {
-            _ = LoadIcon(resourceName, size, crop, feather);
+            _ = LoadIcon(resourceName, size, crop, feather, padding);
         }
 
         private static string? FindResourceName(string resourceName)
@@ -102,7 +102,7 @@ namespace ChatGPT
                                           || n.EndsWith(resourceName, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static Bitmap ScaleBitmap(Bitmap src, int targetSize)
+        private static Bitmap ScaleBitmap(Bitmap src, int targetSize, int padding = 0)
         {
             var result = new Bitmap(targetSize, targetSize);
             using (var g = Graphics.FromImage(result))
@@ -113,7 +113,17 @@ namespace ChatGPT
                 g.CompositingQuality = CompositingQuality.HighQuality;
                 g.Clear(Color.Transparent);
 
-                g.DrawImage(src, 0, 0, targetSize, targetSize);
+                if (padding > 0)
+                {
+                    int drawSize = Math.Max(1, targetSize - 2 * padding);
+                    int offX = Math.Max(0, padding - 1);
+                    int offY = Math.Max(0, padding - 1);
+                    g.DrawImage(src, offX, offY, drawSize, drawSize);
+                }
+                else
+                {
+                    g.DrawImage(src, 0, 0, targetSize, targetSize);
+                }
             }
             return result;
         }
