@@ -953,26 +953,5 @@ namespace ChatGPT
             }
             catch { }
         }
-        
-		// public class NoFocusButton : Button // Блокировка выделения (надо заменять)
-		// {
-		//     protected override bool ShowFocusCues
-		//     {
-		//         get { return false; }
-		//     }
-		// 
-		//     protected override void OnMouseUp(MouseEventArgs mevent)
-		//     {
-		//         base.OnMouseUp(mevent);
-		//         if (this.Parent != null)
-		//         {
-		//             this.Parent.Focus();
-		//         }
-		//         else
-		//         {
-		//             this.FindForm()?.Focus();
-		//         }
-		//     }
-		// }
     }
 }

@@ -56,23 +56,9 @@ namespace ChatGPT
             Application.SetCompatibleTextRenderingDefault(false);
             
 			Form1 form = new Form1();
-			
-			/*
-			if (_isAdmin)
+
+			form.FormClosing += (s, e) =>
 			{
-			    DnsManager.ChangeDns("94.140.14.14", "94.140.15.15");
-			}
-			*/
-			
-			form.FormClosing += (s, e) => 
-			{
-			    /*
-			    if (_isAdmin && DnsManager.IsDnsChanged)
-			    {
-			        DnsManager.RestoreOriginalDns();
-			    }
-			    */
-			    
                 ClearEBWebViewDefaultFolder(userDataFolder);
 			};
 			
