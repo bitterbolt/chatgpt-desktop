@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -11,7 +11,9 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>    
     <ApplicationIcon>Resources\ChatGPT.ico</ApplicationIcon>
-	<AssemblyTitle> Работа с основными чатами нейросетей. </AssemblyTitle>
+    <AssemblyName>ChatGPT Plus</AssemblyName>
+    <Product>ChatGPT Plus</Product>
+    <AssemblyTitle>ChatGPT Plus — работа с основными чатами нейросетей</AssemblyTitle>
     <Company>XoXoТач</Company>
     <Authors>XoXoТач</Authors>
     <AssemblyCompany>XoXoТач</AssemblyCompany>

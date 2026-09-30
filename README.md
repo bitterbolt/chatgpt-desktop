@@ -1,5 +1,5 @@
-# ChatGPT Desktop
-
+# ChatGPT Plus
+ 
 Настольная оболочка (WinForms + WebView2, .NET 8, `net8.0-windows`) для основных
 чат-нейросетей: ChatGPT, Claude, Gemini, DeepSeek, Grok, Copilot.
 

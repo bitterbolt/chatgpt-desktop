@@ -131,7 +131,7 @@ namespace ChatGPT
 
         private void InitializeForm()
         {
-            this.Text = "ChatGPT";
+            this.Text = "ChatGPT Plus";
             this.KeyPreview = true;
             this.KeyDown += Form1_KeyDown;
             this.Resize += (s, e) => UpdateOverlayPosition();
