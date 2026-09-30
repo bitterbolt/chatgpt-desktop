@@ -35,6 +35,7 @@
     <EmbeddedResource Include="Resources\Browser.ico" />
     <EmbeddedResource Include="Resources\Adressbar.ico" />
     <EmbeddedResource Include="Resources\Close.ico" />
+    <EmbeddedResource Include="Resources\Settings.ico" />
     <EmbeddedResource Include="Resources\on.ico" />
     <EmbeddedResource Include="Resources\off.ico" />
     <EmbeddedResource Include="Resources\no.ico" />

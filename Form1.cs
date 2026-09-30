@@ -19,6 +19,8 @@ namespace ChatGPT
         private bool isFullScreen = false;
         private bool _overlayInitialized = false;
         private bool isDnsEnabled = false;
+        private readonly UserSettings _settings = UserSettings.Load();
+        private Button? btnSettings = null;
         private bool _webViewMouseScriptAttached = false;
         private bool isMouseOverToolbar = false;
         
@@ -72,6 +74,25 @@ namespace ChatGPT
                         "ChatGPT",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // «Обход при запуске»
+                if (Program.IsAdmin && isDnsEnabled)
+                {
+                    try { SetDns("111.88.96.50", "111.88.96.51"); } catch { }
+                }
+
+                // «Запоминать последний»: сразу открыть последний сервис вместо оверлея.
+                if (_settings.RememberLast && !string.IsNullOrWhiteSpace(_settings.LastUrl))
+                {
+                    overlayForm?.Hide();
+                    try
+                    {
+                        webView.Source = new Uri(_settings.LastUrl);
+                        webView.Focus();
+                    }
+                    catch { }
                 }
             };
             SetupTopToolbar();
@@ -116,6 +137,13 @@ namespace ChatGPT
             SetInitialWindowSize();
             this.DoubleBuffered = true;
             this.FormClosing += Form1_FormClosing;
+
+            // «Обход при запуске»: включаем состояние DNS-обхода заранее (только с правами
+            // администратора), чтобы иконка тумблера и первая навигация это учитывали.
+            if (Program.IsAdmin && _settings.BypassOnStartup)
+            {
+                isDnsEnabled = true;
+            }
         }
 
         private void InitializeButtonPanel()
@@ -251,8 +279,16 @@ namespace ChatGPT
             this.WindowState = FormWindowState.Normal;
             this.FormBorderStyle = FormBorderStyle.Sizable;
             this.TopMost = false;
-            this.Width = 1035;
-            this.Height = 728;
+            if (_settings.RememberWindowSize && _settings.WindowWidth >= 400 && _settings.WindowHeight >= 300)
+            {
+                this.Width = _settings.WindowWidth;
+                this.Height = _settings.WindowHeight;
+            }
+            else
+            {
+                this.Width = 1035;
+                this.Height = 728;
+            }
             this.StartPosition = FormStartPosition.CenterScreen;
         }
 
@@ -412,14 +448,45 @@ namespace ChatGPT
             {
                 addressPanel.Visible = !addressPanel.Visible;
             });
-            
+            btnSettings = MakeToolbarButton("ChatGPT.Resources.Settings.ico", 24, DockStyle.Right, (s, e) => OpenSettings());
+            dnsToolTip.SetToolTip(btnSettings, "Настройки");
+
             topToolbar.Controls.Add(btnOverlayToggle);
             topToolbar.Controls.Add(btnAddressBarToggle);
+            topToolbar.Controls.Add(btnSettings);
             topToolbar.Controls.Add(btnBrowserToggle);
             topToolbar.Controls.Add(btnFullscreenToggle);
             this.Controls.Add(topToolbar);
             topToolbar.BringToFront();
             this.Resize += (s, e) => topToolbar.Width = this.ClientSize.Width;
+        }
+
+        private void OpenSettings()
+        {
+            bool bypassBefore = _settings.BypassOnStartup;
+            using var dlg = new SettingsForm(_settings, Program.IsAdmin);
+            if (dlg.ShowDialog(this) == DialogResult.OK)
+            {
+                // Настройки уже сохранены в SettingsForm; синхронизируем состояние DNS-тумблера,
+                // если «Обход при запуске» переключили в этом сеансе.
+                if (Program.IsAdmin && _settings.BypassOnStartup != bypassBefore)
+                {
+                    isDnsEnabled = _settings.BypassOnStartup;
+                    string resource = isDnsEnabled ? "ChatGPT.Resources.on.ico" : "ChatGPT.Resources.off.ico";
+                    if (btnToggleDns != null)
+                    {
+                        btnToggleDns.Image = LoadIcon(resource, 48, crop: true);
+                        dnsToolTip.SetToolTip(btnToggleDns,
+                            (isDnsEnabled ? "Отключить" : "Включить") + " обход блокировок");
+                    }
+                    try
+                    {
+                        if (isDnsEnabled) SetDns("111.88.96.50", "111.88.96.51");
+                        else ResetDns();
+                    }
+                    catch { }
+                }
+            }
         }
 
         private Button MakeToolbarButton(string iconResource, int size, DockStyle dock, EventHandler onClick)
@@ -704,6 +771,7 @@ namespace ChatGPT
                     webView.Focus();
                 }
                 catch { }
+                _settings.LastUrl = url;   // «Запоминать последний»
                 this.ActiveControl = null;
                 this.Focus();
             };
@@ -762,6 +830,18 @@ namespace ChatGPT
 
 		private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
 		{
+		    try
+		    {
+		        // Сохранить настройки: размер окна (если включено) и последний URL.
+		        if (_settings.RememberWindowSize && this.WindowState == FormWindowState.Normal)
+		        {
+		            _settings.WindowWidth = this.Width;
+		            _settings.WindowHeight = this.Height;
+		        }
+		        _settings.Save();
+		    }
+		    catch { }
+
 		    try
 		    {
 		        this.Opacity = 0;
