@@ -7,6 +7,7 @@ publish/
 
 # Executables (WebView2Loader.dll is required by the .csproj, keep it)
 *.exe
+*.cmd
 
 # Visual Studio / Rider
 .vs/
