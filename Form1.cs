@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -38,8 +38,10 @@ namespace ChatGPT
         
         private Button? btnToggleDns = null;
         private Button? btnOverlayClose = null;
+        private Button? btnOverlaySettings = null;
+        private const int DefaultWindowWidth = 1035;
+        private const int DefaultWindowHeight = 728;
         
-        private Dictionary<string, Bitmap> _iconCache = new Dictionary<string, Bitmap>();
         private Bitmap? _cachedBackground = null;
         private ToolTip dnsToolTip = new ToolTip();
         
@@ -61,6 +63,7 @@ namespace ChatGPT
             
 			this.Shown += async (sender, e) => 
             {
+                _ = IconService.Instance.WarmupIconCacheAsync();
                 ShowOverlay();
                 this.Opacity = 1.0;
 
@@ -134,6 +137,15 @@ namespace ChatGPT
             this.Resize += (s, e) => UpdateOverlayPosition();
             this.Layout += (s, e) => UpdateOverlayPosition();
             this.Move += (s, e) => UpdateOverlayPosition();
+            this.ResizeEnd += (s, e) =>
+            {
+                if (_settings.RememberWindowSize && this.WindowState == FormWindowState.Normal && !isFullScreen)
+                {
+                    _settings.WindowWidth = this.Width;
+                    _settings.WindowHeight = this.Height;
+                    _settings.Save();
+                }
+            };
             SetInitialWindowSize();
             this.DoubleBuffered = true;
             this.FormClosing += Form1_FormClosing;
@@ -223,12 +235,13 @@ namespace ChatGPT
                     string resource = isDnsEnabled ? "ChatGPT.Resources.on.ico" : "ChatGPT.Resources.off.ico";
                     if (btnToggleDns != null)
 					{
-					    btnToggleDns.Image = LoadIcon(resource, 48, crop: true);
+					    btnToggleDns.Image = IconService.Instance.LoadIcon(resource, 48, crop: false);
                         dnsToolTip.SetToolTip(btnToggleDns, $"{stateText} обход блокировок");
 					}
                     overlayForm?.Focus();
                 },
-                Program.IsAdmin
+                Program.IsAdmin,
+                crop: false
             );
 
             btnOverlayClose = CreateOverlayButton(
@@ -237,22 +250,31 @@ namespace ChatGPT
                 "ChatGPT.Resources.Close.ico",
                 "Назад к просмотру",
 				(s, e) => TryReturnFromOverlay(),
-                true
+                true,
+                crop: false
             );
 
-			if (overlayForm != null && btnToggleDns != null)
+            btnOverlaySettings = CreateOverlayButton(
+                "btnOverlaySettings",
+                48,
+                "ChatGPT.Resources.Settings.ico",
+                "Настройки",
+                (s, e) => OpenSettings(),
+                true,
+                crop: false
+            );
+
+			if (overlayForm != null)
 			{
-			    overlayForm.Controls.Add(btnToggleDns);
-			}
-			if (overlayForm != null && btnOverlayClose != null)
-			{
-			    overlayForm.Controls.Add(btnOverlayClose);
+			    if (btnToggleDns != null) overlayForm.Controls.Add(btnToggleDns);
+			    if (btnOverlaySettings != null) overlayForm.Controls.Add(btnOverlaySettings);
+			    if (btnOverlayClose != null) overlayForm.Controls.Add(btnOverlayClose);
 			}
 
             UpdateOverlayBackButtonVisibility();
         }
 
-        private Button CreateOverlayButton(string name, int size, string iconResource, string tooltip, EventHandler clickHandler, bool enabled)
+        private Button CreateOverlayButton(string name, int size, string iconResource, string tooltip, EventHandler clickHandler, bool enabled, bool crop = false)
         {
             var btn = new Button
             {
@@ -263,7 +285,7 @@ namespace ChatGPT
                 TabStop = false,
                 BackColor = Color.Transparent,
                 ImageAlign = ContentAlignment.MiddleCenter,
-                Image = LoadIcon(iconResource, size, crop: true),
+                Image = IconService.Instance.LoadIcon(iconResource, size, crop),
                 Enabled = enabled
             };
             btn.FlatAppearance.BorderSize = 0;
@@ -281,13 +303,11 @@ namespace ChatGPT
             this.TopMost = false;
             if (_settings.RememberWindowSize && _settings.WindowWidth >= 400 && _settings.WindowHeight >= 300)
             {
-                this.Width = _settings.WindowWidth;
-                this.Height = _settings.WindowHeight;
+                this.Size = new Size(_settings.WindowWidth, _settings.WindowHeight);
             }
             else
             {
-                this.Width = 1035;
-                this.Height = 728;
+                this.Size = new Size(DefaultWindowWidth, DefaultWindowHeight);
             }
             this.StartPosition = FormStartPosition.CenterScreen;
         }
@@ -407,6 +427,7 @@ namespace ChatGPT
         {
             if (btnOverlayClose == null) return;
             btnOverlayClose.Visible = HasPlayableSourceLoaded();
+            UpdateOverlayPosition();
         }
 
         private void TryReturnFromOverlay()
@@ -475,7 +496,7 @@ namespace ChatGPT
                     string resource = isDnsEnabled ? "ChatGPT.Resources.on.ico" : "ChatGPT.Resources.off.ico";
                     if (btnToggleDns != null)
                     {
-                        btnToggleDns.Image = LoadIcon(resource, 48, crop: true);
+                        btnToggleDns.Image = IconService.Instance.LoadIcon(resource, 48, crop: false);
                         dnsToolTip.SetToolTip(btnToggleDns,
                             (isDnsEnabled ? "Отключить" : "Включить") + " обход блокировок");
                     }
@@ -485,6 +506,29 @@ namespace ChatGPT
                         else ResetDns();
                     }
                     catch { }
+                }
+
+                if (_settings.RememberWindowSize)
+                {
+                    int w = this.WindowState == FormWindowState.Normal ? this.Width : this.RestoreBounds.Width;
+                    int h = this.WindowState == FormWindowState.Normal ? this.Height : this.RestoreBounds.Height;
+                    if (w >= 400 && h >= 300)
+                    {
+                        _settings.WindowWidth = w;
+                        _settings.WindowHeight = h;
+                        _settings.Save();
+                    }
+                }
+                else
+                {
+                    // Если галка снята — возвращаемся к жестким размерам
+                    if (this.WindowState != FormWindowState.Normal)
+                    {
+                        this.WindowState = FormWindowState.Normal;
+                    }
+                    this.Size = new Size(DefaultWindowWidth, DefaultWindowHeight);
+                    this.CenterToScreen();
+                    UpdateOverlayPosition();
                 }
             }
         }
@@ -498,7 +542,7 @@ namespace ChatGPT
                 FlatStyle = FlatStyle.Flat,
                 Dock = dock,
                 TabStop = false,
-                Image = LoadIcon(iconResource, size),
+                Image = IconService.Instance.LoadIcon(iconResource, size, crop: false),
                 ImageAlign = ContentAlignment.MiddleCenter
             };
             btn.FlatAppearance.BorderSize = 0;
@@ -658,7 +702,14 @@ namespace ChatGPT
             {
                 this.FormBorderStyle = FormBorderStyle.Sizable;
                 this.WindowState = FormWindowState.Normal;
-                SetInitialWindowSize();
+                if (_settings.RememberWindowSize && _settings.WindowWidth >= 400 && _settings.WindowHeight >= 300)
+                {
+                    this.Size = new Size(_settings.WindowWidth, _settings.WindowHeight);
+                }
+                else
+                {
+                    this.Size = new Size(DefaultWindowWidth, DefaultWindowHeight);
+                }
                 CenterToScreen();
             }
             else
@@ -715,10 +766,28 @@ namespace ChatGPT
                 
                 btnToggleDns?.SetBounds(10, 10, btnToggleDns.Width, btnToggleDns.Height);
                 
-                if (btnOverlayClose != null)
+                if (btnOverlayClose != null && btnOverlayClose.Visible)
                 {
                     btnOverlayClose.Left = overlayForm.ClientSize.Width - btnOverlayClose.Width - 10;
                     btnOverlayClose.Top = 10;
+                    if (btnOverlaySettings != null)
+                    {
+                        btnOverlaySettings.Left = btnOverlayClose.Left - btnOverlaySettings.Width - 10;
+                        btnOverlaySettings.Top = 10;
+                    }
+                }
+                else
+                {
+                    if (btnOverlayClose != null)
+                    {
+                        btnOverlayClose.Left = overlayForm.ClientSize.Width - btnOverlayClose.Width - 10;
+                        btnOverlayClose.Top = 10;
+                    }
+                    if (btnOverlaySettings != null)
+                    {
+                        btnOverlaySettings.Left = overlayForm.ClientSize.Width - btnOverlaySettings.Width - 10;
+                        btnOverlaySettings.Top = 10;
+                    }
                 }
                 
                 var buttonPanel = overlayForm.Controls.OfType<CustomFlowLayoutPanel>().FirstOrDefault();
@@ -736,11 +805,7 @@ namespace ChatGPT
 
         private Button CreateIconButton(string url, string iconResource, int size)
         {
-            if (!_iconCache.TryGetValue(iconResource, out var icon))
-            {
-                icon = LoadIcon(iconResource, size, crop: true);
-                _iconCache[iconResource] = icon;
-            }
+            Bitmap icon = IconService.Instance.LoadIcon(iconResource, size, crop: true);
             var btn = new Button
             {
                 Size = new Size(size, size),
@@ -778,65 +843,19 @@ namespace ChatGPT
             return btn;
         }
 
-        private Bitmap LoadIcon(string resourceName, int targetSize, bool crop = false, int feather = 10)
-        {
-            // Кэширование по ключу, включающему размер и параметры crop
-            string cacheKey = $"{resourceName}_{targetSize}_{crop}_{feather}";
-            
-            if (_iconCache.TryGetValue(cacheKey, out var cachedIcon))
-                return cachedIcon;
-
-            try
-            {
-                using Stream? stream = Assembly.GetExecutingAssembly()
-                    .GetManifestResourceStream(resourceName);
-                if (stream == null)
-                    return new Bitmap(targetSize, targetSize);
-                    
-                using var icon = new Icon(stream, new Size(targetSize, targetSize));
-                using Bitmap bmp = icon.ToBitmap();
-                Bitmap result = crop ? CropToCircle(bmp, feather) : new Bitmap(bmp, new Size(targetSize, targetSize));
-                
-                _iconCache[cacheKey] = result;
-                return result;
-            }
-            catch
-            {
-                return new Bitmap(targetSize, targetSize);
-            }
-        }
-
-        private Bitmap CropToCircle(Bitmap bmp, int featherRadius = 10)
-        {
-            int size = Math.Min(bmp.Width, bmp.Height);
-            Bitmap cropped = new Bitmap(size, size);
-            using (Graphics g = Graphics.FromImage(cropped))
-            {
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                g.CompositingQuality = CompositingQuality.HighQuality;
-                g.Clear(Color.Transparent);
-                using (GraphicsPath path = new GraphicsPath())
-                {
-                    path.AddEllipse(featherRadius, featherRadius, size - 2 * featherRadius, size - 2 * featherRadius);
-                    g.SetClip(path);
-                    g.DrawImage(bmp, new Rectangle(featherRadius, featherRadius, size - 2 * featherRadius, size - 2 * featherRadius),
-                              new Rectangle(0, 0, bmp.Width, bmp.Height), GraphicsUnit.Pixel);
-                }
-            }
-            return cropped;
-        }
-
 		private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
 		{
 		    try
 		    {
-		        // Сохранить настройки: размер окна (если включено) и последний URL.
-		        if (_settings.RememberWindowSize && this.WindowState == FormWindowState.Normal)
+		        if (_settings.RememberWindowSize)
 		        {
-		            _settings.WindowWidth = this.Width;
-		            _settings.WindowHeight = this.Height;
+		            int w = this.WindowState == FormWindowState.Normal ? this.Width : this.RestoreBounds.Width;
+		            int h = this.WindowState == FormWindowState.Normal ? this.Height : this.RestoreBounds.Height;
+		            if (w >= 400 && h >= 300)
+		            {
+		                _settings.WindowWidth = w;
+		                _settings.WindowHeight = h;
+		            }
 		        }
 		        _settings.Save();
 		    }
@@ -883,12 +902,6 @@ namespace ChatGPT
 		    {
 		        dnsToolTip?.Dispose();
 		        // dnsToolTip = null; // Убрать - ToolTip не нужно обнулять
-		        
-		        foreach (var kvp in _iconCache)
-		        {
-		            kvp.Value?.Dispose();
-		        }
-		        _iconCache.Clear();
 		        
 		        _cachedBackground?.Dispose();
 		        _cachedBackground = null;
