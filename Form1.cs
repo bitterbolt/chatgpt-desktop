@@ -83,7 +83,7 @@ namespace ChatGPT
                 // «Обход при запуске»
                 if (Program.IsAdmin && isDnsEnabled)
                 {
-                    try { SetDns("111.88.96.50", "111.88.96.51"); } catch { }
+                    try { SetDns(AppOptions.PrimaryDns, AppOptions.SecondaryDns); } catch { }
                 }
 
                 // «Запоминать последний»: сразу открыть последний сервис вместо оверлея.
@@ -502,7 +502,7 @@ namespace ChatGPT
                     }
                     try
                     {
-                        if (isDnsEnabled) SetDns("111.88.96.50", "111.88.96.51");
+                        if (isDnsEnabled) SetDns(AppOptions.PrimaryDns, AppOptions.SecondaryDns);
                         else ResetDns();
                     }
                     catch { }
@@ -825,7 +825,7 @@ namespace ChatGPT
                 {
                     try
                     {
-                        SetDns("111.88.96.50", "111.88.96.51");
+                        SetDns(AppOptions.PrimaryDns, AppOptions.SecondaryDns);
                     }
                     catch { }
                 }
