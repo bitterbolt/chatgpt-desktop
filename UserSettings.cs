@@ -24,6 +24,23 @@ namespace ChatGPT
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ChatGPT", "settings.json");
 
+        public static UserSettings FromJson(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return new UserSettings();
+            try
+            {
+                var loaded = JsonSerializer.Deserialize<UserSettings>(json);
+                if (loaded != null) return loaded;
+            }
+            catch { }
+            return new UserSettings();
+        }
+
+        public string ToJson()
+        {
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        }
+
         public static UserSettings Load()
         {
             try
@@ -31,8 +48,7 @@ namespace ChatGPT
                 string path = SettingsPath;
                 if (File.Exists(path))
                 {
-                    var loaded = JsonSerializer.Deserialize<UserSettings>(File.ReadAllText(path));
-                    if (loaded != null) return loaded;
+                    return FromJson(File.ReadAllText(path));
                 }
             }
             catch { }
@@ -45,8 +61,7 @@ namespace ChatGPT
             {
                 string path = SettingsPath;
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                File.WriteAllText(path, JsonSerializer.Serialize(this,
-                    new JsonSerializerOptions { WriteIndented = true }));
+                File.WriteAllText(path, ToJson());
             }
             catch { }
         }

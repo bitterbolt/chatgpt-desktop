@@ -20,7 +20,12 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore ChatGPT.csproj
+      run: |
+        dotnet restore ChatGPT.csproj
+        dotnet restore Tests/ChatGPT.Tests/ChatGPT.Tests.csproj
 
     - name: Build Release
       run: dotnet build ChatGPT.csproj --configuration Release --no-restore
+
+    - name: Run Tests
+      run: dotnet test Tests/ChatGPT.Tests/ChatGPT.Tests.csproj --no-restore

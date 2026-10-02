@@ -170,18 +170,11 @@ namespace ChatGPT
                 BackColor = Color.Transparent
             };
             
-            string[,] links = {
-                { "https://chat.openai.com", "ChatGPT.Resources.ChatGPT.ico" },
-                { "https://claude.ai", "ChatGPT.Resources.Claude.ico" },
-                { "https://gemini.google.com/app", "ChatGPT.Resources.Gemini.ico" },
-                { "https://chat.deepseek.com", "ChatGPT.Resources.DeepSeek.ico" },
-                { "https://grok.com/", "ChatGPT.Resources.Grok.ico" },
-                { "https://copilot.microsoft.com", "ChatGPT.Resources.Copilot.ico" }
-            };
-            
-            for (int i = 0; i < links.GetLength(0); i++)
+            for (int i = 0; i < AppOptions.Services.Length; i++)
             {
-                Button btn = CreateIconButton(links[i, 0], links[i, 1], 128);
+                var service = AppOptions.Services[i];
+                Button btn = CreateIconButton(service.Url, service.IconResource, 128);
+                dnsToolTip.SetToolTip(btn, service.Name);
                 
                 if (i == 2)
                     buttonPanel.SetFlowBreak(btn, true);
